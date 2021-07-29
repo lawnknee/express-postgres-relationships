@@ -82,3 +82,25 @@ router.post("/", async function (req, res, next) {
 
   return res.status(201).json({ invoice });
 });
+
+/** PUT /invoices/:id => update an invoice.
+ * input: {amt}
+ * output: {invoice: {id, comp_code, amt, paid, add_date, paid_date}}
+*/
+router.put("/:id", async function (req, res, next) {
+  let id = req.params.id;
+  let { amt } = req.body;
+
+  const oldInvoiceResults = await db.query(
+    `SELECT id, amt
+        FROM invoices
+        WHERE id = $1`,
+        [id]
+  );
+
+  const oldInvoice = oldInvoiceResults.rows[0];
+
+  if (!oldInvoice) throw new NotFoundError()
+
+  
+})
