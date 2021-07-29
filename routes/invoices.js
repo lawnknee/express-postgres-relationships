@@ -88,29 +88,55 @@ router.post("/", async function (req, res, next) {
 });
 
 /** PUT /invoices/:id => update an invoice.
- * input: {amt}
+ * input: {amt, paid}
  * output: {invoice: {id, comp_code, amt, paid, add_date, paid_date}}
 */
 router.put("/:id", async function (req, res, next) {
   let id = req.params.id;
-  let { amt } = req.body;
+  let { amt, paid } = req.body;
 
+  const oldInvoiceResults = await db.query(
+    `SELECT paid, paid_date
+        FROM invoices
+        WHERE id = $1`,
+        [id]
+  );
+  
+  const oldInvoice = oldInvoiceResults.rows[0]
+
+  if (!oldInvoice) throw new NotFoundError(`Not a valid invoice id: ${id}`);
+
+  let paidDate;
+
+  if (oldInvoice.paid === false && paid === true) {
+    paidDate = new Date();
+  } else if (oldInvoice.paid === true && paid === false) {
+    paidDate = null;
+  } else {
+    paidDate = oldInvoice.paid_date;
+  }
+
+  // if paid === true
+    // set paid_date to today
+  // else if paid was true, but now paid === false
+    // set paid_date to null
+  // else
+    // keep current paid_date
+  
   const results = await db.query(
     `UPDATE invoices 
-      SET amt=$2
+      SET amt=$2,
+          paid=$3,
+          paid_date=$4
       WHERE id=$1
       RETURNING id, comp_code, amt, paid, add_date, paid_date`,
-    [id, amt]
+    [id, amt, paid, paidDate]
   );
 
-
   const invoice = results.rows[0];
-
-  //use string interpolation to return that their ID was not found
-  if (!invoice) throw new NotFoundError()
-
-  return res.json({invoice})
-})
+  
+  return res.json({invoice});
+});
 
 /** DELETE /:id => Delete an invoice by invoice id:
  *  output: {status: "deleted"}
