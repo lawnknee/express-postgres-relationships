@@ -1,6 +1,7 @@
 "use strict";
 
 const express = require("express");
+const slugify = require("slugify");
 const router = new express.Router();
 const db = require("../db");
 
@@ -24,7 +25,7 @@ router.get("/", async function (req, res, next) {
  * {company: {code, name, description, invoices:[id, ...]}}
  */
 router.get("/:code", async function (req, res, next) {
-  const code = req.params.code;
+  const code = slugify(req.params.code, { lower: true, strict: true });
 
   const results = await db.query(
     `SELECT code, name, description
@@ -57,6 +58,7 @@ router.get("/:code", async function (req, res, next) {
  */
 router.post("/", async function (req, res, next) {
   let { code, name, description } = req.body;
+  code = slugify(code, { lower: true, strict: true });
 
   const results = await db.query(
     `INSERT INTO companies (code, name, description)
@@ -74,7 +76,7 @@ router.post("/", async function (req, res, next) {
  * output: {company: {code, name, description}}
  */
 router.put("/:code", async function (req, res, next) {
-  const code = req.params.code;
+  const code = slugify(req.params.code, { lower: true, strict: true });
   let { name, description } = req.body;
 
   const results = await db.query(
@@ -95,7 +97,7 @@ router.put("/:code", async function (req, res, next) {
  *  output: {status: "deleted"}
  */
 router.delete("/:code", async function (req, res, next) {
-  const code = req.params.code;
+  const code = slugify(req.params.code, { lower: true, strict: true });
 
   let results = await db.query(
     `DELETE FROM companies 
