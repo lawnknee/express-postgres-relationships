@@ -54,4 +54,27 @@ router.post("/", async function(req, res, next) {
   return res.status(201).json({ company })
 })
 
+/** PUT / => Update a company by company code
+ * input: {name, description}
+ * output: {company: {code, name, description}}
+*/
+router.put("/:code", async function (req, res, next) {
+  const code = req.params.code;
+  let {name, description} = req.body;
+
+  const results = await db.query(
+    `UPDATE companies 
+      SET name=$2, description=$3
+      WHERE code=$1
+      RETURNING code, name, description`, [ code, name, description]
+  );
+
+  const company = results.rows[0];
+
+  if (!company) throw new NotFoundError();
+  return res.json({ company })
+})
+
+
+
 module.exports = router;
