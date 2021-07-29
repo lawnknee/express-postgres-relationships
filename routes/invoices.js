@@ -91,16 +91,36 @@ router.put("/:id", async function (req, res, next) {
   let id = req.params.id;
   let { amt } = req.body;
 
-  const oldInvoiceResults = await db.query(
-    `SELECT id, amt
-        FROM invoices
-        WHERE id = $1`,
-        [id]
+  const results = await db.query(
+    `UPDATE invoices 
+      SET amt=$2
+      WHERE id=$1
+      RETURNING id, comp_code, amt, paid, add_date, paid_date`,
+    [id, amt]
   );
 
-  const oldInvoice = oldInvoiceResults.rows[0];
 
-  if (!oldInvoice) throw new NotFoundError()
+  const invoice = results.rows[0];
 
-  
+  if (!invoice) throw new NotFoundError()
+
+  return res.json({invoice})
 })
+
+/** DELETE /:id => Delete an invoice by invoice id:
+ *  output: {status: "deleted"}
+ */
+ router.delete("/:id", async function (req, res, next) {
+    const id = req.params.id;
+  
+    let results = await db.query(
+      `DELETE FROM invoices 
+          WHERE id = $1
+          RETURNING id`,
+      [id]
+    );
+  
+    let invoice = results.rows[0];
+    if (!invoice) throw new NotFoundError();
+    res.json({ status: "deleted" });
+  });

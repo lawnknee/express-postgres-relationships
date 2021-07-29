@@ -21,9 +21,8 @@ router.get("/", async function (req, res, next) {
 });
 
 /** GET /:code => get a single company like:
- * {company: {code, name, description}}
+ * {company: {code, name, description, invoices:[id, ...]}}
  */
-
 router.get("/:code", async function (req, res, next) {
   const code = req.params.code;
 
@@ -35,9 +34,20 @@ router.get("/:code", async function (req, res, next) {
     // WHERE code like $1`, ['%'+ code '%']
     // don't want this for GET route because we want the code that's EXACTLY
   );
-  const company = results.rows[0];
+  let company = results.rows[0];
 
   if (!company) throw new NotFoundError();
+
+  const invoiceResults = await db.query(
+    `SELECT id, amt, paid, add_date, paid_date, comp_code
+        FROM invoices
+        WHERE comp_code = $1`,
+    [code]
+  );
+
+  let invoicesId = invoiceResults.rows.map( e => e.id);
+
+  company["invoices"] = invoicesId;
 
   return res.json({ company });
 });
