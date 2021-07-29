@@ -20,8 +20,6 @@ router.get("/", async function (req, res, next) {
   return res.json({ invoices });
 });
 
-module.exports = router;
-
 /** GET /:id => get a single invoice like:
  * {invoice: {id, amt, paid, add_date, paid_date,
  *    company: {code, name, description} }
@@ -37,7 +35,11 @@ router.get("/:id", async function (req, res, next) {
     [id]
   );
 
-  const invoice = invoiceResults.rows[0];
+//   const invoice = invoiceResults.rows[0];
+  console.log("THIS IS THE INVOICE_RESULTS[0]", invoiceResults.rows[0]);
+  const {comp_code, ...invoice} = invoiceResults.rows[0];
+  console.log("THIS IS THE COMP_CODE", comp_code);
+  console.log("THIS IS THE INVOICE", invoice);
 
   if (!invoice) throw new NotFoundError();
 
@@ -45,23 +47,25 @@ router.get("/:id", async function (req, res, next) {
     `SELECT code, name, description
         FROM companies
         WHERE code = $1`,
-    [invoice.comp_code]
+    [comp_code]
   );
   const company = companyResults.rows[0];
 
-  let invoiceJson = {
-    id: invoice.id,
-    amt: invoice.amt,
-    paid: invoice.paid,
-    add_date: invoice.add_date,
-    paid_date: invoice.paid_date,
-    company: {
-      code: company.code,
-      name: company.name,
-      description: company.descrpition,
-    },
-  };
-  return res.json({ invoice: invoiceJson });
+  invoice.company = company;
+
+//   let invoiceJson = {
+//     id: invoice.id,
+//     amt: invoice.amt,
+//     paid: invoice.paid,
+//     add_date: invoice.add_date,
+//     paid_date: invoice.paid_date,
+//     company: {
+//       code: company.code,
+//       name: company.name,
+//       description: company.descrpition,
+//     },
+//   };
+  return res.json({ invoice });
 });
 
 /** POST /invoices => create a new invoice like:
@@ -102,6 +106,7 @@ router.put("/:id", async function (req, res, next) {
 
   const invoice = results.rows[0];
 
+  //use string interpolation to return that their ID was not found
   if (!invoice) throw new NotFoundError()
 
   return res.json({invoice})
@@ -124,3 +129,5 @@ router.put("/:id", async function (req, res, next) {
     if (!invoice) throw new NotFoundError();
     res.json({ status: "deleted" });
   });
+
+  module.exports = router;
