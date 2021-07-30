@@ -21,6 +21,22 @@ CREATE TABLE invoices (
   paid_date DATE
 );
 
+CREATE TABLE industries (
+  code TEXT NOT NULL PRIMARY KEY,
+  industry TEXT NOT NULL UNIQUE
+);
+
+-- create association table between industries and companies
+
+INSERT INTO industries (code, industry)
+VALUES ('', 'Computer Hardware'),
+       ('', 'Computer Software'),
+       ('', 'Consumer electronics'),
+       ('', 'Cloud Computing'),
+       ('', 'Artifical Intelligence'),
+       ('', 'Computer Software'),
+       ('', 'Computer Hardware');
+
 INSERT INTO companies
 VALUES ('apple', 'Apple Computer', 'Maker of OSX.'),
        ('ibm', 'IBM', 'Big blue.');
@@ -53,3 +69,4 @@ CREATE TABLE invoices (
   add_date  DATE DEFAULT CURRENT_DATE NOT NULL,
   paid_date DATE
 );
+
